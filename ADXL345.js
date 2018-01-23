@@ -28,7 +28,8 @@ class ADXL345 {
     this.ADXL345_REG_DATAY1      = 0x35;
     this.ADXL345_REG_DATAZ0      = 0x36;
     this.ADXL345_REG_DATAZ1      = 0x37;
-
+    this.ADXL345_REG_FIFO_CTL    = 0x38; // READ/WRITE to control FIFO mode
+    this.ADXL345_REG_FIFO_STATUS = 0x39; // READ status of FIFO and how many entries are available
     this.ADXL345_MG2G_SCALE_FACTOR = 0.004; // 4mg per lsb 
     this.EARTH_GRAVITY_MS2 = 9.80665;
   }
@@ -327,6 +328,22 @@ class ADXL345 {
   static DATARATE_800_HZ()  { return 0b1101; } //  400Hz Bandwidth 140µA IDD
   static DATARATE_1600_HZ() { return 0b1110; } //  800Hz Bandwidth  90µA IDD
   static DATARATE_3200_HZ() { return 0b1111; } // 1600Hz Bandwidth 140µA IDD
-}
+
+
+
+  // FIFO Modes
+  static FIFO_MODE_BYPASS() { return 0b00; } // FIFO is bypassed
+  static FIFO_MODE_FIFO() { return 0b01; } /* FIFO collects up to 32 values and then stops collecting data, collecting new data
+  only when FIFO is not full. */
+  static FIFO_MODE_STREAM() { return 0b10; } /* FIFO holds the last 32 data values. When FIFO is full, the oldest data is overwritten
+  with newer data. */
+  static FIFO_MODE_TRIGGER() { return 0b11; } /* When triggered by the trigger bit, FIFO holds the last data samples before the
+  trigger event and then continues to collect data until full. New data is collected only when FIFO is not full */
+
+  // FIFO TRIGGER Bit
+  static FIFO_TRIGGER_INT1() { return 0b0; }
+  static FIFO_TRIGGER_INT2() { return 0b1; }
+
+ }
 
 module.exports = ADXL345;
