@@ -6,6 +6,11 @@ const chai    = require('chai');
 const ADXL345 = require('../ADXL345.js');
 const expect  = chai.expect;
 
+const deviceOptions = {
+  i2cBusNo   : process.env.I2C_BUS_NUMBER || 1,
+  i2cAddress : pricess.env.I2C_ADDRESS || ADXL345.I2C_ADDRESS_ALT_HIGH() // defaults to 0x1d
+}
+
 const measurementRanges = [
   ADXL345.RANGE_16_G(),
   ADXL345.RANGE_8_G(),
@@ -31,7 +36,7 @@ const dataRates = [
   ADXL345.DATARATE_100_HZ()]; // ending on 100HZ to leave the chip at the default value
 
 const readAndValidateAcceleration = (gForceUnits, range, done) => {
-  let adxl345 = new ADXL345();
+  let adxl345 = new ADXL345(deviceOptions);
   adxl345.init()
     .then(() => adxl345.getAcceleration(gForceUnits))
     .then((data) => {
@@ -49,7 +54,7 @@ const readAndValidateAcceleration = (gForceUnits, range, done) => {
 };
 
 const setAndValidateRange = (range, done) => {
-  let adxl345 = new ADXL345();
+  let adxl345 = new ADXL345(deviceOptions);
   adxl345.init()
     .then(() => {
       console.log(`Set range ${ADXL345.stringifyMeasurementRange(range)}`);
@@ -67,7 +72,7 @@ const setAndValidateRange = (range, done) => {
 };
 
 const setAndValidateDataRate = (dataRate, done) => {
-  let adxl345 = new ADXL345();
+  let adxl345 = new ADXL345(deviceOptions);
   adxl345.init()
     .then(() => {
       console.log(`Set data rate ${ADXL345.stringifyDataRate(dataRate)}`);
@@ -85,7 +90,7 @@ const setAndValidateDataRate = (dataRate, done) => {
 };
 
 const setAndValidateOffsets = (offsetX, offsetY, offsetZ, done) => {
-  let adxl345 = new ADXL345();
+  let adxl345 = new ADXL345(deviceOptions);
   adxl345.init()
     .then(() => adxl345.setOffsetX(offsetX))
     .then(() => adxl345.setOffsetY(offsetY))
@@ -104,7 +109,7 @@ const setAndValidateOffsets = (offsetX, offsetY, offsetZ, done) => {
 };
 
 const expectInvalidRangeError = (range, done) => {
-  let adxl345 = new ADXL345();
+  let adxl345 = new ADXL345(deviceOptions);
   adxl345.init()
     .then(() => adxl345.setMeasurementRange(range))
     .then(() => done(`Expected setMeasurementRange(${range}) to fail with invalid range`))
@@ -114,7 +119,7 @@ const expectInvalidRangeError = (range, done) => {
 };
 
 const setAndValidateFIFO = (options, done) => {
-  let adxl345 = new ADXL345();
+  let adxl345 = new ADXL345(deviceOptions);
   adxl345.init()
     .then(() => adxl345.setFIFOControl(options))
     .then(() => adxl345.getFIFOControl())
@@ -129,7 +134,7 @@ const setAndValidateFIFO = (options, done) => {
 
 describe('adxl345-sensor', () => {
   it('it should communicate with the device', () => {
-    let adxl345 = new ADXL345();
+    let adxl345 = new ADXL345(deviceOptions);
     expect(adxl345).to.be.an.instanceof(ADXL345);
     return adxl345.init().then((deviceId) => {
       expect(deviceId).to.be.equal(ADXL345.DEVICE_ID());
@@ -165,7 +170,7 @@ describe('adxl345-sensor', () => {
   });
 
   it('it should fail to set invalid data rate (null)', (done) => {
-    let adxl345 = new ADXL345();
+    let adxl345 = new ADXL345(deviceOptions);
     adxl345.init()
       .then(() => adxl345.setDataRate(null))
       .then(() => done('Expected setDataRate(null) to fail with invalid data rate'))

@@ -236,7 +236,7 @@ class ADXL345 {
         let fifoControl = {
           mode: (controlRegister >> 6) & 0b00000011,
           trigger: (controlRegister >> 5) & 0b00000001,
-          samples = controlRegister & 0b00011111
+          samples: controlRegister & 0b00011111
         }
         resolve(fifoControl)
       });
