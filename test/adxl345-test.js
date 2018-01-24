@@ -135,8 +135,8 @@ const setAndValidateFIFO = (options, done) => {
 const validateFIFOStatus = (done) => {
   let adxl345 = new ADXL345(deviceOptions);
   adxl345.init()
-    .then(() => adxl345.setDataRate(ADXL345.DATARATE_100_HZ))
-    .then(() => adxl345.setFIFOControl( { mode: ADXL345.FIFO_MODE_STREAM, samples: 32 } ))
+    .then(() => adxl345.setDataRate(ADXL345.DATARATE_100_HZ()))
+    .then(() => adxl345.setFIFOControl( { mode: ADXL345.FIFO_MODE_STREAM(), samples: 32 } ))
     .then(() => adxl345.getFIFOStatus())
     .then((fifoStatus) => {      
       expect(fifoStatus.triggerEvent).to.be.equal(0b0)
