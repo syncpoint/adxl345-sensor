@@ -201,13 +201,17 @@ describe('adxl345-sensor', () => {
     setAndValidateOffsets(0, 0, 0, done);
   });
 
-  it('sould set and validate FIFO control register', (done) => {
+  it('it sould set and validate FIFO control register', (done) => {
     let fifoOptions = {
       mode: ADXL345.FIFO_MODE_STREAM(),
       trigger: ADXL345.FIFO_TRIGGER_INT2(),
       samples: 16
     }
     setAndValidateFIFO(fifoOptions, done)
+  })
+
+  it('it should set FIFO control and validate the FIFO status', (done) => {
+    validateFIFOStatus(done)
   })
 
 });
