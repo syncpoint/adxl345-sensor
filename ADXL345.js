@@ -263,30 +263,27 @@ class ADXL345 {
         return reject(new Error(`number of samples (${samples}) is out of range (1..32)`))
       }
 
-      this.i2cBus.readI2cBlock(this.i2cAddress, this.ADXL345_REG_DATAX0, 6 * samplesToRead, Buffer.alloc(6 * samplesToRead), (err, bytesRead, buffer) => {
-        if(err) {
-          return reject(err);
-        }
-        let fifoSamples = []          
-        for (let sample = 0; sample < samplesToRead; sample++) {
-          let fifoDistance = 6 * sample
-          let x = this.int16(buffer[fifoDistance + 1], buffer[fifoDistance + 0]) * this.ADXL345_MG2G_SCALE_FACTOR;
-          let y = this.int16(buffer[fifoDistance + 3], buffer[fifoDistance + 2]) * this.ADXL345_MG2G_SCALE_FACTOR;
-          let z = this.int16(buffer[fifoDistance + 5], buffer[fifoDistance + 4]) * this.ADXL345_MG2G_SCALE_FACTOR;
-          fifoSamples.push(
-            {
+      let fifoSamples = []
+      for (let sample = 0; sample < samplesToRead; sample++) {
+        let buffer = Buffer.alloc(6)
+        let bytesRead = this.i2cBus.readI2cBlockSync(this.i2cAddress, this.ADXL345_REG_DATAX0, 6, buffer)
+        if (bytesRead != 6) return reject(new Error(`got ${bytesRead} instead of expected 6 bytes`))
+        let x = this.int16(buffer[1], buffer[0]) * this.ADXL345_MG2G_SCALE_FACTOR;
+        let y = this.int16(buffer[3], buffer[2]) * this.ADXL345_MG2G_SCALE_FACTOR;
+        let z = this.int16(buffer[5], buffer[4]) * this.ADXL345_MG2G_SCALE_FACTOR;
+          
+        fifoSamples.push(
+          {
               x : gForce ? x : x * this.EARTH_GRAVITY_MS2,
               y : gForce ? y : y * this.EARTH_GRAVITY_MS2,
               z : gForce ? z : z * this.EARTH_GRAVITY_MS2,
               units : gForce ? 'g' : 'm/s²'
             }
-          )            
-        }
+        )
+      } 
         
-        resolve(fifoSamples);
-      });
-    })
-   
+      return resolve(fifoSamples);
+    });
   }
 
   uint16(msb, lsb) {
