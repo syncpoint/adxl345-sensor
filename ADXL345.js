@@ -259,6 +259,46 @@ class ADXL345 {
     })
   }
 
+  getFIFOAcceleration(gForce, samples) {    
+    return new Promise((resolve, reject) => {      
+      let samplesToRead = samples || 1
+      if (samplesToRead < 1 || samplesToRead > 32) {
+        return reject(new Error(`number of samples (${samples}) is out of range (1..32)`))
+      }
+
+      // Request/read all three axes at once
+      //
+      this.i2cBus.writeByte(this.i2cAddress, this.ADXL345_REG_DATAX0, 0, (err) => {
+        if(err) {
+          return reject(err);
+        }
+
+        this.i2cBus.readI2cBlock(this.i2cAddress, this.ADXL345_REG_DATAX0, 6 * samplesToRead, new Buffer(6 * samplesToRead), (err, bytesRead, buffer) => {
+          if(err) {
+            return reject(err);
+          }
+          let fifoSamples = []
+
+          for (sample = 0; sample < samplesToRead; sample++) {
+            let x = this.int16(buffer[sample + 1], buffer[sample + 0]) * this.ADXL345_MG2G_SCALE_FACTOR;
+            let y = this.int16(buffer[sample + 3], buffer[sample + 2]) * this.ADXL345_MG2G_SCALE_FACTOR;
+            let z = this.int16(buffer[sample + 5], buffer[sample + 4]) * this.ADXL345_MG2G_SCALE_FACTOR;
+            fifoSamples.push(
+              {
+                x : gForce ? x : x * this.EARTH_GRAVITY_MS2,
+                y : gForce ? y : y * this.EARTH_GRAVITY_MS2,
+                z : gForce ? z : z * this.EARTH_GRAVITY_MS2,
+                units : gForce ? 'g' : 'm/s²'
+              }
+            )
+          }
+          
+          resolve(fifoSamples);
+        });
+      })
+    })     
+  }
+
   uint16(msb, lsb) {
     return msb << 8 | lsb;
   }
