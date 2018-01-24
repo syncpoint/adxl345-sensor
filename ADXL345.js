@@ -252,7 +252,7 @@ class ADXL345 {
         
         let fifoStatus = {          
           triggerEvent: (statusRegister >> 7) & 0b00000001,
-          samplesAvailable: controlRegister & 0b00111111
+          samplesAvailable: statusRegister & 0b00111111
         }
         resolve(fifoStatus)
       });
