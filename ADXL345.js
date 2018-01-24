@@ -243,6 +243,22 @@ class ADXL345 {
     });
   }
 
+  getFIFOStatus() {
+    return new Promise((resolve, reject) => {
+      this.i2cBus.readByte(this.i2cAddress, this.ADXL345_REG_FIFO_STATUS, (err, statusRegister) => {
+        if(err) {
+          return reject(err);
+        }
+        
+        let fifoStatus = {          
+          triggerEvent: (statusRegister >> 7) & 0b00000001,
+          samplesAvailable: controlRegister & 0b00111111
+        }
+        resolve(fifoStatus)
+      });
+    })
+  }
+
   uint16(msb, lsb) {
     return msb << 8 | lsb;
   }

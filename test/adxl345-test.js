@@ -132,6 +132,20 @@ const setAndValidateFIFO = (options, done) => {
     .catch((error) => { done(error) })
 }
 
+const validateFIFOStatus = (done) => {
+  let adxl345 = new ADXL345(deviceOptions);
+  adxl345.init()
+    .then(() => adxl345.setDataRate(ADXL345.DATARATE_100_HZ))
+    .then(() => adxl345.setFIFOControl( { mode: ADXL345.FIFO_MODE_STREAM, samples: 32 } ))
+    .then(() => adxl345.getFIFOStatus())
+    .then((fifoStatus) => {      
+      expect(fifoStatus.triggerEvent).to.be.equal(0b0)
+      expect(fifoStatus.samplesAvailable).to.be.not.equal(0)
+      done()
+    })
+    .catch((error) => { done(error) })
+}
+
 describe('adxl345-sensor', () => {
   it('it should communicate with the device', () => {
     let adxl345 = new ADXL345(deviceOptions);
