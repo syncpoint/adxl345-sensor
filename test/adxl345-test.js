@@ -113,6 +113,20 @@ const expectInvalidRangeError = (range, done) => {
     });
 };
 
+const setAndValidateFIFO = (options, done) => {
+  let adxl345 = new ADXL345();
+  adxl345.init()
+    .then(() => adxl345.setFIFOControl(options))
+    .then(() => adxl345.getFIFOControl())
+    .then((fifoOptions) => {
+      expect(fifoOptions.mode).to.be.equal(options.mode)
+      expect(fifoOptions.trigger).to.be.equal(options.trigger)
+      expect(fifoOptions.samples).to.be.equal(options.samples)
+      done()
+    })
+    .catch((error) => { done(error) })
+}
+
 describe('adxl345-sensor', () => {
   it('it should communicate with the device', () => {
     let adxl345 = new ADXL345();
@@ -167,5 +181,13 @@ describe('adxl345-sensor', () => {
   it('it should set and validate offsets (zero)', (done) => {
     setAndValidateOffsets(0, 0, 0, done);
   });
+
+  it('sould set and validate FIFO control register', (done) => {
+    let fifoOptions = {
+      mode: ADXL345.FIFO_MODE_STREAM,
+      trigger: ADXL345.FIFO_TRIGGER_INT2,
+      samples: 16
+    }
+  })
 
 });
