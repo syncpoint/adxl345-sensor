@@ -8,7 +8,7 @@ const expect  = chai.expect;
 
 const deviceOptions = {
   i2cBusNo   : process.env.I2C_BUS_NUMBER || 1,
-  i2cAddress : pricess.env.I2C_ADDRESS || ADXL345.I2C_ADDRESS_ALT_HIGH() // defaults to 0x1d
+  i2cAddress : parseInt(process.env.I2C_ADDRESS) || ADXL345.I2C_ADDRESS_ALT_HIGH() // defaults to 0x1d
 }
 
 const measurementRanges = [
@@ -189,10 +189,11 @@ describe('adxl345-sensor', () => {
 
   it('sould set and validate FIFO control register', (done) => {
     let fifoOptions = {
-      mode: ADXL345.FIFO_MODE_STREAM,
-      trigger: ADXL345.FIFO_TRIGGER_INT2,
+      mode: ADXL345.FIFO_MODE_STREAM(),
+      trigger: ADXL345.FIFO_TRIGGER_INT2(),
       samples: 16
     }
+    setAndValidateFIFO(fifoOptions, done)
   })
 
 });

@@ -208,8 +208,8 @@ class ADXL345 {
 
   setFIFOControl(fifoOptions) {
     let options = {
-      mode: FIFO_MODE_BYPASS(),
-      trigger: FIFO_TRIGGER_INT1(),
+      mode: ADXL345.FIFO_MODE_BYPASS(),
+      trigger: ADXL345.FIFO_TRIGGER_INT1(),
       samples: 32
     }
     if (options) { Object.assign(options, fifoOptions)}
