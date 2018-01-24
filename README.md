@@ -134,6 +134,14 @@ acceleration = {
 }
 ```
 
-##Example Wiring
+## Running tests
+
+In order to run automated tests using ```npm test``` the I2C bus number and the I2C device address can be passed by setting the environment variables ```I2C_BUS_NUMBER``` and ```I2C_ADDRESS```.
+
+```bash
+I2C_BUS_NUMBER=7 I2C_ADDRESS=0x1d npm test
+```
+
+## Example Wiring
 
 For I2C setup on a Raspberry Pi, take a look at my [pi-weather-station](https://github.com/skylarstein/pi-weather-station) project.
