@@ -73,12 +73,9 @@ class ADXL345 {
 
       // Request/read all three axes at once
       //
-      this.i2cBus.writeByte(this.i2cAddress, this.ADXL345_REG_DATAX0, 0, (err) => {
-        if(err) {
-          return reject(err);
-        }
+      
 
-        this.i2cBus.readI2cBlock(this.i2cAddress, this.ADXL345_REG_DATAX0, 6, new Buffer(6), (err, bytesRead, buffer) => {
+        this.i2cBus.readI2cBlock(this.i2cAddress, this.ADXL345_REG_DATAX0, 6, Buffer.alloc(6), (err, bytesRead, buffer) => {
           if(err) {
             return reject(err);
           }
@@ -94,7 +91,7 @@ class ADXL345 {
             units : gForce ? 'g' : 'm/s²'});
         });
       });
-    });
+    
   }
 
   setMeasurementRange(range) {
