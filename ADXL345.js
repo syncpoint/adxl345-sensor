@@ -263,37 +263,30 @@ class ADXL345 {
         return reject(new Error(`number of samples (${samples}) is out of range (1..32)`))
       }
 
-      // Request/read all three axes at once
-      //
-      this.i2cBus.writeByte(this.i2cAddress, this.ADXL345_REG_DATAX0, 0, (err) => {
+      this.i2cBus.readI2cBlock(this.i2cAddress, this.ADXL345_REG_DATAX0, 6 * samplesToRead, Buffer.alloc(6 * samplesToRead), (err, bytesRead, buffer) => {
         if(err) {
           return reject(err);
         }
-
-        this.i2cBus.readI2cBlock(this.i2cAddress, this.ADXL345_REG_DATAX0, 6 * samplesToRead, new Buffer(6 * samplesToRead), (err, bytesRead, buffer) => {
-          if(err) {
-            return reject(err);
-          }
-          let fifoSamples = []          
-          for (let sample = 0; sample < samplesToRead; sample++) {
-            let fifoDistance = 6 * sample
-            let x = this.int16(buffer[fifoDistance + 1], buffer[fifoDistance + 0]) * this.ADXL345_MG2G_SCALE_FACTOR;
-            let y = this.int16(buffer[fifoDistance + 3], buffer[fifoDistance + 2]) * this.ADXL345_MG2G_SCALE_FACTOR;
-            let z = this.int16(buffer[fifoDistance + 5], buffer[fifoDistance + 4]) * this.ADXL345_MG2G_SCALE_FACTOR;
-            fifoSamples.push(
-              {
-                x : gForce ? x : x * this.EARTH_GRAVITY_MS2,
-                y : gForce ? y : y * this.EARTH_GRAVITY_MS2,
-                z : gForce ? z : z * this.EARTH_GRAVITY_MS2,
-                units : gForce ? 'g' : 'm/s²'
-              }
-            )            
-          }
-          
-          resolve(fifoSamples);
-        });
-      })
-    })     
+        let fifoSamples = []          
+        for (let sample = 0; sample < samplesToRead; sample++) {
+          let fifoDistance = 6 * sample
+          let x = this.int16(buffer[fifoDistance + 1], buffer[fifoDistance + 0]) * this.ADXL345_MG2G_SCALE_FACTOR;
+          let y = this.int16(buffer[fifoDistance + 3], buffer[fifoDistance + 2]) * this.ADXL345_MG2G_SCALE_FACTOR;
+          let z = this.int16(buffer[fifoDistance + 5], buffer[fifoDistance + 4]) * this.ADXL345_MG2G_SCALE_FACTOR;
+          fifoSamples.push(
+            {
+              x : gForce ? x : x * this.EARTH_GRAVITY_MS2,
+              y : gForce ? y : y * this.EARTH_GRAVITY_MS2,
+              z : gForce ? z : z * this.EARTH_GRAVITY_MS2,
+              units : gForce ? 'g' : 'm/s²'
+            }
+          )            
+        }
+        
+        resolve(fifoSamples);
+      });
+    })
+   
   }
 
   uint16(msb, lsb) {
