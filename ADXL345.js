@@ -206,6 +206,43 @@ class ADXL345 {
     });
   }
 
+  setFIFOControl(fifoOptions) {
+    let options = {
+      mode: FIFO_MODE_BYPASS(),
+      trigger: FIFO_TRIGGER_INT1(),
+      samples: 32
+    }
+    if (options) { Object.assign(options, fifoOptions)}
+    return new Promise((resolve, reject) => {
+
+      let value = 0b00000000;      
+      value |= (options.mode << 6 )
+      value |= (options.trigger << 5)
+      value |= (options.samples)
+
+      this.i2cBus.writeByte(this.i2cAddress, this.ADXL345_REG_FIFO_CTL, value, (err) => {
+        err ? reject(err) : resolve();
+      });
+    })
+  }
+
+  getFIFOControl() {
+    return new Promise((resolve, reject) => {
+      this.i2cBus.readByte(this.i2cAddress, this.ADXL345_REG_FIFO_CTL, (err, controlRegister) => {
+        if(err) {
+          return reject(err);
+        }
+        
+        let fifoControl = {
+          mode: (controlRegister >> 6) & 0b00000011,
+          trigger: (controlRegister >> 5) & 0b00000001,
+          samples = controlRegister & 0b00011111
+        }
+        resolve(fifoControl)
+      });
+    });
+  }
+
   uint16(msb, lsb) {
     return msb << 8 | lsb;
   }
