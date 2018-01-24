@@ -273,16 +273,16 @@ class ADXL345 {
           return reject(err);
         }
 
-        this.i2cBus.i2cRead(this.i2cAddress, this.ADXL345_REG_DATAX0, 6 * samplesToRead, new Buffer(6 * samplesToRead), (err, bytesRead, buffer) => {
+        this.i2cBus.readI2cBlock(this.i2cAddress, this.ADXL345_REG_DATAX0, 6 * samplesToRead, new Buffer(6 * samplesToRead), (err, bytesRead, buffer) => {
           if(err) {
             return reject(err);
           }
           let fifoSamples = []          
           for (let sample = 0; sample < samplesToRead; sample++) {
-            
-            let x = this.int16(buffer[6 * sample + 1], buffer[6 * sample + 0]) * this.ADXL345_MG2G_SCALE_FACTOR;
-            let y = this.int16(buffer[6 * sample + 3], buffer[6 * sample + 2]) * this.ADXL345_MG2G_SCALE_FACTOR;
-            let z = this.int16(buffer[6 * sample + 5], buffer[6 * sample + 4]) * this.ADXL345_MG2G_SCALE_FACTOR;
+            let fifoDistance = 6 * sample
+            let x = this.int16(buffer[fifoDistance + 1], buffer[fifoDistance + 0]) * this.ADXL345_MG2G_SCALE_FACTOR;
+            let y = this.int16(buffer[fifoDistance + 3], buffer[fifoDistance + 2]) * this.ADXL345_MG2G_SCALE_FACTOR;
+            let z = this.int16(buffer[fifoDistance + 5], buffer[fifoDistance + 4]) * this.ADXL345_MG2G_SCALE_FACTOR;
             fifoSamples.push(
               {
                 x : gForce ? x : x * this.EARTH_GRAVITY_MS2,
