@@ -253,18 +253,17 @@ class ADXL345 {
 
   getFIFOAcceleration(gForce, samples) {    
     
-    let samplesToRead = samples || 1
+    let samplesToRead = samples || 16
     if (samplesToRead < 1 || samplesToRead > 32) {
-      console.error(`number of samples (${samples}) is out of range (1..32), falling back to default value`)
+      console.error(`number of samples (${samples}) is out of range (1..32), falling back to default value of 16`)
+      samplesToRead = 16
     }
 
     let queries = []
     for (let sample = 0; sample < samplesToRead; sample++) {
-        queries.push(getAcceleration(gForce))
-        
-    } 
-    
-    return Promise.all()
+        queries.push(this.getAcceleration(gForce))        
+    }     
+    return Promise.all(queries)
   }
 
   uint16(msb, lsb) {
