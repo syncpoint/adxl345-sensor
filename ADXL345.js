@@ -70,28 +70,23 @@ class ADXL345 {
 
   getAcceleration(gForce) {
     return new Promise((resolve, reject) => {
-
       // Request/read all three axes at once
-      //
-      
+      this.i2cBus.readI2cBlock(this.i2cAddress, this.ADXL345_REG_DATAX0, 6, Buffer.alloc(6), (err, bytesRead, buffer) => {
+        if(err) {
+          return reject(err);
+        }
 
-        this.i2cBus.readI2cBlock(this.i2cAddress, this.ADXL345_REG_DATAX0, 6, Buffer.alloc(6), (err, bytesRead, buffer) => {
-          if(err) {
-            return reject(err);
-          }
+        let x = this.int16(buffer[1], buffer[0]) * this.ADXL345_MG2G_SCALE_FACTOR;
+        let y = this.int16(buffer[3], buffer[2]) * this.ADXL345_MG2G_SCALE_FACTOR;
+        let z = this.int16(buffer[5], buffer[4]) * this.ADXL345_MG2G_SCALE_FACTOR;
 
-          let x = this.int16(buffer[1], buffer[0]) * this.ADXL345_MG2G_SCALE_FACTOR;
-          let y = this.int16(buffer[3], buffer[2]) * this.ADXL345_MG2G_SCALE_FACTOR;
-          let z = this.int16(buffer[5], buffer[4]) * this.ADXL345_MG2G_SCALE_FACTOR;
-
-          resolve({
-            x : gForce ? x : x * this.EARTH_GRAVITY_MS2,
-            y : gForce ? y : y * this.EARTH_GRAVITY_MS2,
-            z : gForce ? z : z * this.EARTH_GRAVITY_MS2,
-            units : gForce ? 'g' : 'm/s²'});
-        });
+        resolve({
+          x : gForce ? x : x * this.EARTH_GRAVITY_MS2,
+          y : gForce ? y : y * this.EARTH_GRAVITY_MS2,
+          z : gForce ? z : z * this.EARTH_GRAVITY_MS2,
+          units : gForce ? 'g' : 'm/s²'});
       });
-    
+    });    
   }
 
   setMeasurementRange(range) {
@@ -207,7 +202,7 @@ class ADXL345 {
     let options = {
       mode: ADXL345.FIFO_MODE_BYPASS(),
       trigger: ADXL345.FIFO_TRIGGER_INT1(),
-      samples: 32
+      samples: 24
     }
     if (options) { Object.assign(options, fifoOptions)}
     return new Promise((resolve, reject) => {
@@ -257,33 +252,19 @@ class ADXL345 {
   }
 
   getFIFOAcceleration(gForce, samples) {    
-    return new Promise((resolve, reject) => {      
-      let samplesToRead = samples || 1
-      if (samplesToRead < 1 || samplesToRead > 32) {
-        return reject(new Error(`number of samples (${samples}) is out of range (1..32)`))
-      }
+    
+    let samplesToRead = samples || 1
+    if (samplesToRead < 1 || samplesToRead > 32) {
+      console.error(`number of samples (${samples}) is out of range (1..32), falling back to default value`)
+    }
 
-      let fifoSamples = []
-      for (let sample = 0; sample < samplesToRead; sample++) {
-        let buffer = Buffer.alloc(6)
-        let bytesRead = this.i2cBus.readI2cBlockSync(this.i2cAddress, this.ADXL345_REG_DATAX0, 6, buffer)
-        if (bytesRead != 6) return reject(new Error(`got ${bytesRead} instead of expected 6 bytes`))
-        let x = this.int16(buffer[1], buffer[0]) * this.ADXL345_MG2G_SCALE_FACTOR;
-        let y = this.int16(buffer[3], buffer[2]) * this.ADXL345_MG2G_SCALE_FACTOR;
-        let z = this.int16(buffer[5], buffer[4]) * this.ADXL345_MG2G_SCALE_FACTOR;
-          
-        fifoSamples.push(
-          {
-              x : gForce ? x : x * this.EARTH_GRAVITY_MS2,
-              y : gForce ? y : y * this.EARTH_GRAVITY_MS2,
-              z : gForce ? z : z * this.EARTH_GRAVITY_MS2,
-              units : gForce ? 'g' : 'm/s²'
-            }
-        )
-      } 
+    let queries = []
+    for (let sample = 0; sample < samplesToRead; sample++) {
+        queries.push(getAcceleration(gForce))
         
-      return resolve(fifoSamples);
-    });
+    } 
+    
+    return Promise.all()
   }
 
   uint16(msb, lsb) {
